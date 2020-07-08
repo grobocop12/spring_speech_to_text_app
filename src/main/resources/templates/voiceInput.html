@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Speech Recognizer</title>
+    <link rel="stylesheet" th:href="@{../css/main.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{../css/rec.css}" type="text/css"/>
+    <script type="text/javascript" th:src="@{/webjars/sockjs-client/sockjs.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/stomp-websocket/stomp.min.js}"></script>
+    <script type="text/javascript" th:src="@{../js/Chart.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+</head>
+<body>
+
+<div class="content">
+    <div class="center-horizontally">
+        <p>Click here</p>
+        <button id="recButton" class="rec-button"></button>
+    </div>
+    <div>
+        <canvas th:width="400" th:height="200" th:id="chart">
+
+        </canvas>
+    </div>
+
+</div>
+<script type="text/javascript" th:src="@{../js/VoiceInputChart.js}">s</script>
+<script>
+    let stompClient;
+    let context;
+    let rec;
+    let audioChunks = [];
+    const recButton = $('#recButton');
+    recButton.addClass('notRec');
+    connect();
+    navigator.mediaDevices.getUserMedia({audio: true, video: false})
+        .then(stream => {
+            rec = new MediaRecorder(stream);
+            rec.addEventListener('dataavailable', onRecordingReady);
+            createNewContext();
+            handleSuccess(stream);
+        });
+
+    recButton.click(function () {
+        if (recButton.hasClass('notRec')) {
+            setButtonStyle(true);
+            rec.start();
+        } else {
+            setButtonStyle(false);
+            rec.stop();
+            //context.close().then(onContextClose);
+        }
+    });
+
+    const handleSuccess = function (stream) {
+        const source = context.createMediaStreamSource(stream);
+        const processor = context.createScriptProcessor(bufferLength, 1, 1);
+        source.connect(processor);
+        processor.connect(context.destination);
+        processor.onaudioprocess = function (e) {
+            const buffer = Array.from(e.inputBuffer.getChannelData(0)).filter(function (value, index, Arr) {
+                return index % cutting === 0;
+            });
+            chart.data.datasets.forEach((dataset) => {
+                dataset.data = buffer
+            })
+            chart.update();
+        };
+    };
+
+    function onRecordingReady(e) {
+        console.log(e.data);
+        const blob = new Blob([e.data], {type: 'audio/mpeg-3'});
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+            console.log(typeof reader.result);
+            stompClient.send('/app/dataInput', {}, JSON.stringify({
+                'data': reader.result
+            }));
+        }
+    }
+
+    function setButtonStyle(rec) {
+        if (rec) {
+            recButton.removeClass("notRec");
+            recButton.addClass("Rec");
+        } else {
+            recButton.removeClass("Rec");
+            recButton.addClass("notRec");
+        }
+    }
+
+    function createNewContext() {
+        context = new AudioContext();
+        context.sampleRate = 16000;
+    }
+
+    function onContextClose() {
+        chart.data.datasets.forEach((dataset) => {
+            dataset.data = new Array(Math.floor(bufferLength / cutting)).fill(0);
+        })
+        chart.update();
+    }
+
+    function connect() {
+        const socket = new SockJS('/recognizer-websocket');
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe('/user/dataOutput/output', function (output) {
+                console.log(output);
+            })
+        })
+    }
+</script>
+</body>
+</html>
