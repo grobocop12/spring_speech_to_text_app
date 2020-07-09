@@ -111,7 +111,7 @@
         stompClient.debug = null
         stompClient.connect({}, function (frame) {
             stompClient.subscribe('/user/dataOutput/output', function (output) {
-                console.log(output);
+                connect.log(output.body);
             })
         })
     }
