@@ -1,16 +1,16 @@
 package com.grobocop.transcriber.data;
 
 public class InputDataPackage {
-    private String data;
+    private byte[] data;
 
     public InputDataPackage() {
     }
 
-    public String getData() {
+    public byte[] getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(byte[] data) {
         this.data = data;
     }
 }

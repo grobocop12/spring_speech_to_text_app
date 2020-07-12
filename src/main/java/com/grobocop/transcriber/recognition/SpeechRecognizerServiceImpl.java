@@ -32,7 +32,7 @@ public class SpeechRecognizerServiceImpl implements SpeechRecognizerService {
                     RecognitionAudio.newBuilder().setContent(byteString).build();
             RecognitionConfig recognitionConfig =
                     RecognitionConfig.newBuilder()
-                            .setEncoding(RecognitionConfig.AudioEncoding.AMR_WB)
+                            .setEncoding(RecognitionConfig.AudioEncoding.MP3)
                             .setLanguageCode("en-US")
                             .setSampleRateHertz(16000)
                             .build();

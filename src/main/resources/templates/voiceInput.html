@@ -42,7 +42,7 @@
     connect();
     navigator.mediaDevices.getUserMedia({audio: true, video: false})
         .then(stream => {
-            rec = new MediaRecorder(stream, {type: 'audio/mpeg'});
+            rec = new MediaRecorder(stream);
             rec.addEventListener('dataavailable', onRecordingReady);
             createNewContext();
             handleSuccess(stream);
@@ -76,17 +76,16 @@
     };
 
     function onRecordingReady(e) {
-        const blob = new Blob([e.data], {type: "audio/AMR-WB"});
+        const blob = new Blob([e.data], {type: "audio/mpeg-3"});
         const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        //blob.arrayBuffer().then((buffer) => {
+        reader.readAsArrayBuffer(blob);
         reader.onloadend = () => {
-            //console.log(reader.result);
+            const result = new Uint8Array(reader.result);
             $.ajax({
                 type: "POST",
                 url: "/transcribeAjax",
-                data: JSON.stringify(reader.result),
-                contentType: "application/json; charset=UTF-8",
+                data: JSON.stringify({ data: Array.from(result)}),
+                contentType: "application/json; charset=UTF-8" ,
                 success: function (result) {
                     $('#listOfResults').append(result);
                     console.log(result);
