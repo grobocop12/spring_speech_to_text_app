@@ -24,6 +24,11 @@
 
         </canvas>
     </div>
+    <div>
+        <div id="listOfResults">
+
+        </div>
+    </div>
 
 </div>
 <script type="text/javascript" th:src="@{../js/VoiceInputChart.js}">s</script>
@@ -37,7 +42,7 @@
     connect();
     navigator.mediaDevices.getUserMedia({audio: true, video: false})
         .then(stream => {
-            rec = new MediaRecorder(stream);
+            rec = new MediaRecorder(stream, {type: 'audio/mpeg'});
             rec.addEventListener('dataavailable', onRecordingReady);
             createNewContext();
             handleSuccess(stream);
@@ -71,16 +76,27 @@
     };
 
     function onRecordingReady(e) {
-        console.log(e.data);
-        const blob = new Blob([e.data], {type: 'audio/mpeg-3'});
+        const blob = new Blob([e.data], {type: "audio/AMR-WB"});
         const reader = new FileReader();
         reader.readAsDataURL(blob);
+        //blob.arrayBuffer().then((buffer) => {
         reader.onloadend = () => {
-            console.log(typeof reader.result);
-            stompClient.send('/app/dataInput', {}, JSON.stringify({
-                'data': reader.result
-            }));
+            //console.log(reader.result);
+            $.ajax({
+                type: "POST",
+                url: "/transcribeAjax",
+                data: JSON.stringify(reader.result),
+                contentType: "application/json; charset=UTF-8",
+                success: function (result) {
+                    $('#listOfResults').append(result);
+                    console.log(result);
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
         }
+
     }
 
     function setButtonStyle(rec) {
@@ -111,7 +127,7 @@
         stompClient.debug = null
         stompClient.connect({}, function (frame) {
             stompClient.subscribe('/user/dataOutput/output', function (output) {
-                connect.log(output.body);
+
             })
         })
     }

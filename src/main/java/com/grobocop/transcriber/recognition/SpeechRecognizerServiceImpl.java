@@ -9,9 +9,9 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 @Service
-@Scope(value = "websocket", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class SpeechRecognizerServiceImpl implements SpeechRecognizerService {
 
     private SpeechClient client;
@@ -20,12 +20,6 @@ public class SpeechRecognizerServiceImpl implements SpeechRecognizerService {
     private void setUpRecognizer() {
         try {
             client = SpeechClient.create();
-            RecognitionConfig recognitionConfig =
-                    RecognitionConfig.newBuilder()
-                            .setEncoding(RecognitionConfig.AudioEncoding.MP3)
-                            .setLanguageCode("en-US")
-                            .setSampleRateHertz(16000)
-                            .build();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -40,19 +34,23 @@ public class SpeechRecognizerServiceImpl implements SpeechRecognizerService {
                     RecognitionAudio.newBuilder().setContent(byteString).build();
             RecognitionConfig recognitionConfig =
                     RecognitionConfig.newBuilder()
-                            .setEncoding(RecognitionConfig.AudioEncoding.MP3)
+                            .setEncoding(RecognitionConfig.AudioEncoding.AMR_WB)
                             .setLanguageCode("en-US")
                             .setSampleRateHertz(16000)
                             .build();
             RecognizeResponse response = client.recognize(recognitionConfig, request);
-            if(response.getResults(0).getAlternatives(0) != null) {
-                String result = response.getResults(0).getAlternatives(0).getTranscript();
+            List<SpeechRecognitionResult> results = response.getResultsList();
+            if(results.size() > 0) {
+                String result = results.get(0).getAlternatives(0).toString();
+                System.out.println(result);
                 return new OutputDataPackage(result);
             } else {
-                return new OutputDataPackage("");
+                return new OutputDataPackage("NONE" +
+                        "");
             }
         } catch (Exception e) {
-            return new OutputDataPackage(null);
+            System.out.println(e.getMessage());
+            return new OutputDataPackage(e.getMessage());
         }
     }
 }
