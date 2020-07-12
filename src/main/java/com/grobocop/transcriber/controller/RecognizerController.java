@@ -8,10 +8,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import sun.misc.BASE64Decoder;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 @Controller
 public class RecognizerController {
@@ -30,10 +28,9 @@ public class RecognizerController {
     }
 
     @PostMapping("/transcribeAjax")
-    public String transcribeAjax(@RequestBody String audio, Model model){
-
+    public String transcribeAjax(@RequestBody String audio, Model model) {
         byte[] data = audio.split(",")[1].getBytes(StandardCharsets.US_ASCII);
-        OutputDataPackage outputDataPackage  = speechRecognizerService.loadData(data);
+        OutputDataPackage outputDataPackage = speechRecognizerService.loadData(data);
         model.addAttribute("output", outputDataPackage);
         return "transcriptionResult";
     }
