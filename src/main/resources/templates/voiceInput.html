@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Speech Recognizer</title>
+    <link rel="stylesheet" th:href="@{../css/loader.css}" type="text/css"/>
     <link rel="stylesheet" th:href="@{../css/main.css}" type="text/css"/>
     <link rel="stylesheet" th:href="@{../css/rec.css}" type="text/css"/>
     <script type="text/javascript" th:src="@{/webjars/sockjs-client/sockjs.min.js}"></script>
@@ -20,26 +21,30 @@
         <button id="recButton" class="rec-button"></button>
     </div>
     <div>
-        <canvas th:width="400" th:height="200" th:id="chart">
+        <canvas th:width="400" th:height="150" th:id="chart">
 
         </canvas>
     </div>
+
+
+    <div id="loaderContainer">
+        <div id="loader" class="loader center-horizontally" style="display: none">
+        </div>
+    </div>
+
     <div>
         <div id="listOfResults">
-
         </div>
     </div>
 
 </div>
-<script type="text/javascript" th:src="@{../js/VoiceInputChart.js}">s</script>
+<script type="text/javascript" th:src="@{../js/VoiceInputChart.js}"></script>
 <script>
     let stompClient;
     let context;
     let rec;
-    let audioChunks = [];
     const recButton = $('#recButton');
     recButton.addClass('notRec');
-    connect();
     navigator.mediaDevices.getUserMedia({audio: true, video: false})
         .then(stream => {
             rec = new MediaRecorder(stream);
@@ -55,7 +60,6 @@
         } else {
             setButtonStyle(false);
             rec.stop();
-            //context.close().then(onContextClose);
         }
     });
 
@@ -76,6 +80,7 @@
     };
 
     function onRecordingReady(e) {
+        showLoader();
         const blob = new Blob([e.data], {type: "audio/mpeg-3"});
         const reader = new FileReader();
         reader.readAsArrayBuffer(blob);
@@ -84,18 +89,21 @@
             $.ajax({
                 type: "POST",
                 url: "/transcribeAjax",
-                data: JSON.stringify({ data: Array.from(result)}),
-                contentType: "application/json; charset=UTF-8" ,
+                data: JSON.stringify({data: Array.from(result)}),
+                contentType: "application/json; charset=UTF-8",
                 success: function (result) {
                     $('#listOfResults').append(result);
-                    console.log(result);
+                    hideLoader();
                 },
                 error: function (error) {
                     console.log(error);
+                    hideLoader();
+                },
+                done: function () {
+                    hideLoader();
                 }
             })
         }
-
     }
 
     function setButtonStyle(rec) {
@@ -120,15 +128,12 @@
         chart.update();
     }
 
-    function connect() {
-        const socket = new SockJS('/recognizer-websocket');
-        stompClient = Stomp.over(socket);
-        stompClient.debug = null
-        stompClient.connect({}, function (frame) {
-            stompClient.subscribe('/user/dataOutput/output', function (output) {
+    function showLoader(){
+        $('.loader').show();
+    }
 
-            })
-        })
+    function hideLoader() {
+        $('.loader').hide();
     }
 </script>
 </body>
