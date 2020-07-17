@@ -3,8 +3,24 @@
       xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="https://www.thymeleaf.org">
 <body>
-<div>
-    <p th:text="${output.getOutputMessage()}"></p>
+
+
+
+<div th:classappend="${output.responseType == output.responseType.Error} ? error : ''">
+
+    <p th:if="${output.responseType == output.responseType.Error}">
+        <b>An error occurred. Please try again</b>
+    </p>
+    <p th:if="${output.responseType == output.responseType.Empty}">
+        No speech was detected.
+    </p>
+    <div th:if="${output.responseType == output.responseType.Transcription}" th:each="result: ${output.getResults()}">
+        <th:block th:each="alternative: ${result.alternativesList}">
+            <p th:text="${'transcript: ' + alternative.transcript}"></p>
+            <p th:text="${'confidence: ' + alternative.confidence}"></p>
+        </th:block>
+    </div>
+    <hr>
 </div>
 </body>
 </html>

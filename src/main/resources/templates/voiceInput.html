@@ -25,22 +25,17 @@
 
         </canvas>
     </div>
-
-
     <div id="loaderContainer">
         <div id="loader" class="loader center-horizontally" style="display: none">
         </div>
     </div>
-
     <div>
         <div id="listOfResults">
         </div>
     </div>
-
 </div>
 <script type="text/javascript" th:src="@{../js/VoiceInputChart.js}"></script>
 <script>
-    let stompClient;
     let context;
     let rec;
     const recButton = $('#recButton');
@@ -92,6 +87,7 @@
                 data: JSON.stringify({data: Array.from(result)}),
                 contentType: "application/json; charset=UTF-8",
                 success: function (result) {
+                    $(".error").remove();
                     $('#listOfResults').append(result);
                     hideLoader();
                 },
@@ -128,13 +124,14 @@
         chart.update();
     }
 
-    function showLoader(){
+    function showLoader() {
         $('.loader').show();
     }
 
     function hideLoader() {
         $('.loader').hide();
     }
+
 </script>
 </body>
 </html>

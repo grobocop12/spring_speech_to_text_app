@@ -21,6 +21,10 @@ body {
     color: #fff;
 }
 
+.error {
+    color: red;
+}
+
 .typewriter {
     overflow: hidden; /* Ensures the content is not revealed until the animation */
     border-right: .15em solid transparent; /* The typwriter cursor */

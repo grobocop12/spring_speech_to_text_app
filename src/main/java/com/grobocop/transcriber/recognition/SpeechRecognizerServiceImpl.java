@@ -3,16 +3,24 @@ package com.grobocop.transcriber.recognition;
 import com.google.cloud.speech.v1p1beta1.*;
 import com.google.protobuf.ByteString;
 import com.grobocop.transcriber.controller.SpeechRecognizerService;
-import com.grobocop.transcriber.data.OutputDataPackage;
+import com.grobocop.transcriber.data.RecognitionResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Service
+@Qualifier("speechRecognizerService")
 public class SpeechRecognizerServiceImpl implements SpeechRecognizerService {
 
     private SpeechClient client;
+    private final RecognitionConfig recognitionConfig =
+            RecognitionConfig.newBuilder()
+                    .setEncoding(RecognitionConfig.AudioEncoding.MP3)
+                    .setLanguageCode("en-US")
+                    .setSampleRateHertz(16000)
+                    .build();
 
     @PostConstruct
     private void setUpRecognizer() {
@@ -25,30 +33,22 @@ public class SpeechRecognizerServiceImpl implements SpeechRecognizerService {
 
 
     @Override
-    public OutputDataPackage loadData(byte[] data) {
+    public RecognitionResponse loadData(byte[] data) {
+        ByteString byteString = ByteString.copyFrom(data);
+        RecognitionAudio request = RecognitionAudio
+                .newBuilder()
+                .setContent(byteString)
+                .build();
         try {
-            ByteString byteString = ByteString.copyFrom(data);
-            RecognitionAudio request =
-                    RecognitionAudio.newBuilder().setContent(byteString).build();
-            RecognitionConfig recognitionConfig =
-                    RecognitionConfig.newBuilder()
-                            .setEncoding(RecognitionConfig.AudioEncoding.MP3)
-                            .setLanguageCode("en-US")
-                            .setSampleRateHertz(16000)
-                            .build();
             RecognizeResponse response = client.recognize(recognitionConfig, request);
             List<SpeechRecognitionResult> results = response.getResultsList();
             if (results.size() > 0) {
-                String result = results.get(0).getAlternatives(0).toString();
-                System.out.println(result);
-                return new OutputDataPackage(result);
+                return new RecognitionResponse(RecognitionResponse.Type.Transcription, results);
             } else {
-                return new OutputDataPackage("NONE" +
-                        "");
+                return new RecognitionResponse(RecognitionResponse.Type.Empty, results);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return new OutputDataPackage(e.getMessage());
+            return new RecognitionResponse(RecognitionResponse.Type.Error);
         }
     }
 }
