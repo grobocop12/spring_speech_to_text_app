@@ -36,6 +36,7 @@
 </div>
 <script type="text/javascript" th:src="@{../js/VoiceInputChart.js}"></script>
 <script>
+    var requestNumber = 0;
     let context;
     let rec;
     const recButton = $('#recButton');
@@ -84,12 +85,16 @@
             $.ajax({
                 type: "POST",
                 url: "/transcribeAjax",
-                data: JSON.stringify({data: Array.from(result)}),
+                data: JSON.stringify({
+                    data: Array.from(result),
+                    requestNumber: requestNumber
+                }),
                 contentType: "application/json; charset=UTF-8",
                 success: function (result) {
                     $(".error").remove();
                     $('#listOfResults').append(result);
                     hideLoader();
+                    requestNumber++;
                 },
                 error: function (error) {
                     console.log(error);

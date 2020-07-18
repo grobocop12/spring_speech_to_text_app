@@ -11,8 +11,9 @@ public class RecognitionResponse {
         Empty
     }
 
-    private Type responseType;
     private List<SpeechRecognitionResult> results;
+    private Type responseType;
+    private int responseNumber;
 
     public RecognitionResponse(Type type) {
         this.responseType = type;
@@ -27,7 +28,7 @@ public class RecognitionResponse {
         return results;
     }
 
-    public void setOutputMessage(List<SpeechRecognitionResult> results) {
+    public void setResults(List<SpeechRecognitionResult> results) {
         this.results = results;
     }
 
@@ -37,5 +38,13 @@ public class RecognitionResponse {
 
     public void setResponseType(Type responseType) {
         this.responseType = responseType;
+    }
+
+    public int getResponseNumber() {
+        return responseNumber;
+    }
+
+    public void setResponseNumber(int responseNumber) {
+        this.responseNumber = responseNumber;
     }
 }

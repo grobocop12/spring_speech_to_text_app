@@ -32,6 +32,7 @@ public class RecognizerController {
     @PostMapping("/transcribeAjax")
     public String transcribeAjax(@RequestBody InputDataPackage input, Model model) {
         RecognitionResponse recognitionResponse = speechRecognizerService.loadData(input.getData());
+        recognitionResponse.setResponseNumber(input.getRequestNumber());
         model.addAttribute("output", recognitionResponse);
         return "transcriptionResult";
     }

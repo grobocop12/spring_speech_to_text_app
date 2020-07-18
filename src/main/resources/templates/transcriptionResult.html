@@ -5,22 +5,45 @@
 <body>
 
 
-
 <div th:classappend="${output.responseType == output.responseType.Error} ? error : ''">
 
-    <p th:if="${output.responseType == output.responseType.Error}">
-        <b>An error occurred. Please try again</b>
-    </p>
-    <p th:if="${output.responseType == output.responseType.Empty}">
-        No speech was detected.
-    </p>
+    <div th:if="${output.responseType == output.responseType.Error}">
+        <p>
+            <b>An error occurred. Please try again</b>
+        </p>
+    </div>
+    <div th:if="${output.responseType == output.responseType.Empty}">
+        <p>
+            No speech was detected.
+        </p>
+    </div>
+
     <div th:if="${output.responseType == output.responseType.Transcription}" th:each="result: ${output.getResults()}">
+        <h4 th:text="${#dates.format(#dates.createNow(), 'HH:mm')}"></h4>
+        <button class="right-button" th:id="${'copy_button_' + output.responseNumber}" th:width="15">
+            <img th:src="@{../images/copy.png}" th:width="15"/>
+        </button>
         <th:block th:each="alternative: ${result.alternativesList}">
-            <p th:text="${'transcript: ' + alternative.transcript}"></p>
-            <p th:text="${'confidence: ' + alternative.confidence}"></p>
+            <h5>Transcript:</h5>
+            <p th:id="${'transcript_' + output.responseNumber}" th:text="${alternative.transcript}"></p>
+            <h5>Confidence:</h5>
+            <p th:text="${alternative.confidence}"></p>
         </th:block>
     </div>
     <hr>
 </div>
+<script>
+    const buttonId = '#copy_button_' + [[${output.responseNumber}]];
+    const transcriptId = 'transcript_' + [[${output.responseNumber}]];
+    $(buttonId).click(function (e) {
+        const text = document.getElementById(transcriptId).innerText;
+        const elem  =document.createElement('textarea');
+        document.body.appendChild(elem);
+        elem.value = text;
+        elem.select();
+        document.execCommand("copy");
+        document.body.removeChild(elem);
+    })
+</script>
 </body>
 </html>

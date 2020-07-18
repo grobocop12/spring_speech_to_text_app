@@ -35,6 +35,9 @@ body {
     blink-caret 2s;
 }
 
+.right-button {
+    float: right;
+}
 .button {
     display: block;
     background: #4E9CAF;
