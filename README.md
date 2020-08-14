@@ -1,4 +1,4 @@
-# spring_speech_to_text_app
+# Spring Speech to text app
 This application uses Google's Speech To Text API to transcript voice recorded by users microphone.
 It is designed to run on Google Cloud's App Engine.
 
